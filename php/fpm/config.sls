@@ -29,6 +29,15 @@
     {%- do conf_settings.global.update({'pid': '/var/run/php' + version + '-fpm.pid' }) %}
     {%- do conf_settings.global.update({'error_log': '/var/log/php' + version + '-fpm.log' }) %}
 
+
+{{ pools }}:
+    file.directory:
+        - name: {{ pools }}
+        - user: {{ php.lookup.fpm.user }}
+        - group: {{ php.lookup.fpm.group }}
+        - file_mode: 755
+        - makedirs: True
+        
 php_fpm_ini_config_{{ version }}:
   {{ php_ini(ini,
              'php_fpm_ini_config_' ~ version,
@@ -43,18 +52,19 @@ php_fpm_conf_config_{{ version }}:
              odict(conf_settings)
   ) }}
 
-{{ pools }}:
-    file.directory:
-        - name: {{ pools }}
-        - user: {{ php.lookup.fpm.user }}
-        - group: {{ php.lookup.fpm.group }}
-        - file_mode: 755
-        - make_dirs: True
   {%- endfor %}
 {%- else %}
 
 {%- set conf_settings = php.lookup.fpm.defaults %}
 {%- do conf_settings.update(php.fpm.config.conf.settings) %}
+
+{{ php.lookup.fpm.pools }}:
+    file.directory:
+        - name: {{ php.lookup.fpm.pools }}
+        - user: {{ php.lookup.fpm.user }}
+        - group: {{ php.lookup.fpm.group }}
+        - file_mode: 755
+        - makedirs: True
 
 php_fpm_ini_config:
   {{ php_ini(php.lookup.fpm.ini,
@@ -70,11 +80,4 @@ php_fpm_conf_config:
              conf_settings
   ) }}
 
-{{ php.lookup.fpm.pools }}:
-    file.directory:
-        - name: {{ php.lookup.fpm.pools }}
-        - user: {{ php.lookup.fpm.user }}
-        - group: {{ php.lookup.fpm.group }}
-        - file_mode: 755
-        - make_dirs: True
 {%- endif %}
